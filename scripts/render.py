@@ -153,7 +153,7 @@ table {{ width:100%; border-collapse:collapse; display:block; overflow-x:auto; }
         feedback.appendChild(correctDetail);
       }}
     }}));
-  }}));
+  }});
 }})();
 </script>
 </body></html>'''
