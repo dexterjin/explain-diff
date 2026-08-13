@@ -17,37 +17,53 @@ Claude Code, Google Antigravity, ChatGPT 등 `SKILL.md` 기반 Agent Skills 환�
 
 ## 설치
 
-### 자동 감지
+### Google Antigravity
 
-프로젝트 디렉터리에서 실행하면 설치 가능한 에이전트를 감지해 선택할 수 있습니다.
+#### 프로젝트 설치 — 권장
+
+Antigravity 공식 workspace Skill 경로는 `.agents/skills/`입니다. 프로젝트 루트에서 다음을 실행하세요.
+
+```bash
+npx skills add dexterjin/explain-diff -a antigravity --copy -y
+```
+
+`--copy`는 Antigravity가 symlink된 Skill을 인식하지 못하는 환경을 피하기 위해 사용합니다.
+
+설치 후 확인:
+
+```bash
+ls .agents/skills/explain-diff/SKILL.md
+```
+
+#### 전역 설치 — 모든 프로젝트에서 사용
+
+Antigravity 공식 global Skill 경로는 `~/.gemini/config/skills/`입니다. 현재 `skills` CLI의 Antigravity 전역 경로와 공식 경로가 어긋나는 사례가 있어, 전역 설치는 아래 스크립트를 권장합니다.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dexterjin/explain-diff/main/install-antigravity.sh | bash
+```
+
+설치 후 확인:
+
+```bash
+ls ~/.gemini/config/skills/explain-diff/SKILL.md
+```
+
+업데이트:
+
+```bash
+git -C ~/.gemini/config/skills/explain-diff pull --ff-only
+```
+
+### Agent Skills CLI 자동 감지
 
 ```bash
 npx skills add dexterjin/explain-diff
 ```
 
-전역 설치가 필요하면 `-g`를 추가합니다.
-
-```bash
-npx skills add dexterjin/explain-diff -g
-```
-
-### Google Antigravity
-
-프로젝트에 설치:
-
-```bash
-npx skills add dexterjin/explain-diff -a antigravity -y
-```
-
-전역 설치:
-
-```bash
-npx skills add dexterjin/explain-diff -a antigravity -g -y
-```
-
 ### Claude Code
 
-프로젝트에 설치:
+프로젝트 설치:
 
 ```bash
 npx skills add dexterjin/explain-diff -a claude-code -y
@@ -57,12 +73,6 @@ npx skills add dexterjin/explain-diff -a claude-code -y
 
 ```bash
 npx skills add dexterjin/explain-diff -a claude-code -g -y
-```
-
-### Antigravity + Claude Code 동시에
-
-```bash
-npx skills add dexterjin/explain-diff -a antigravity -a claude-code -g -y
 ```
 
 ### ChatGPT
@@ -89,11 +99,13 @@ python scripts/render.py content.json --output /tmp/2026-08-13-explanation-examp
 
 ## 업데이트
 
-`skills` CLI로 설치했다면 이후에는 다음 명령으로 최신 버전을 확인/업데이트할 수 있습니다.
+`skills` CLI로 설치했다면 다음 명령을 사용할 수 있습니다.
 
 ```bash
 npx skills update explain-diff
 ```
+
+Antigravity 전역 설치 스크립트를 사용했다면 저장소 자체가 설치되므로 `git pull`로 갱신할 수 있습니다.
 
 ## Credits
 
