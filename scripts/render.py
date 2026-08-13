@@ -13,7 +13,7 @@ def esc(value):
 
 
 def safe_section_html(raw):
-    # Content is authored by the agent. Keep useful markup but block active/external HTML.
+    # Content is authored by the agent. Keep the useful markup but block active/external HTML.
     text = str(raw)
     lowered = text.lower()
     blocked = ("<script", "<iframe", "<object", "<embed", "javascript:", "http://", "https://")
@@ -47,10 +47,7 @@ def render(data):
     seed_source = json.dumps(data, ensure_ascii=False, sort_keys=True).encode("utf-8")
     base_seed = int(hashlib.sha256(seed_source).hexdigest()[:16], 16)
 
-    toc = "".join(
-        f'<li><a href="#{esc(s.get("id", "section"))}">{esc(s.get("title", "섹션"))}</a></li>'
-        for s in sections
-    )
+    toc = "".join(f'<li><a href="#{esc(s.get("id", "section"))}">{esc(s.get("title", "섹션"))}</a></li>' for s in sections)
     toc += '<li><a href="#quiz">이해도 퀴즈</a></li>'
 
     assumptions_html = ""
@@ -71,6 +68,7 @@ def render(data):
             buttons.append(
                 '<button class="option" type="button" '
                 f'data-correct="{str(item["correct"]).lower()}" '
+                f'data-answer="{esc(item["text"])}" '
                 f'data-feedback="{esc(item["explanation"])}">'
                 f'<span class="option-label">{chr(65 + idx)}</span>{esc(item["text"])}</button>'
             )
@@ -98,8 +96,8 @@ pre {{ white-space:pre-wrap; overflow-wrap:anywhere; overflow-x:auto; padding:16
 .flow {{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:18px 0; }} .node {{ border:1px solid var(--line); background:var(--card); border-radius:10px; padding:10px 14px; }} .arrow {{ color:var(--muted); font-weight:700; }}
 .compare {{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }} @media (max-width:700px) {{ .compare {{ grid-template-columns:1fr; }} main {{ width:min(100% - 22px,980px); padding-top:28px; }} }}
 .options {{ display:grid; gap:10px; }} .option {{ width:100%; text-align:left; border:1px solid var(--line); background:var(--card); color:var(--fg); padding:12px 14px; border-radius:10px; cursor:pointer; font:inherit; }}
-.option:hover,.option:focus-visible {{ border-color:var(--accent); outline:3px solid color-mix(in srgb,var(--accent) 24%,transparent); }} .option[disabled] {{ cursor:default; opacity:.9; }} .option.selected {{ font-weight:700; }} .option-label {{ display:inline-grid; place-items:center; width:1.8em; height:1.8em; margin-right:9px; border:1px solid var(--line); border-radius:999px; }}
-.feedback {{ margin-top:12px; min-height:1.5em; }} .feedback.ok {{ color:var(--ok); }} .feedback.bad {{ color:var(--bad); }}
+.option:hover,.option:focus-visible {{ border-color:var(--accent); outline:3px solid color-mix(in srgb,var(--accent) 24%,transparent); }} .option[disabled] {{ cursor:default; opacity:.9; }} .option.selected {{ font-weight:700; }} .option.correct-answer {{ border-color:var(--ok); }} .option.wrong-selected {{ border-color:var(--bad); }} .option-label {{ display:inline-grid; place-items:center; width:1.8em; height:1.8em; margin-right:9px; border:1px solid var(--line); border-radius:999px; }} .result-badge {{ float:right; margin-left:10px; padding:2px 8px; border:1px solid currentColor; border-radius:999px; font-size:.82em; font-weight:700; }} .result-badge.correct {{ color:var(--ok); }} .result-badge.selected-wrong {{ color:var(--bad); }}
+.feedback {{ margin-top:12px; min-height:1.5em; }} .feedback.ok {{ color:var(--ok); }} .feedback.bad {{ color:var(--bad); }} .feedback p {{ margin:.45em 0; }} .feedback .correct-detail {{ color:var(--ok); }}
 table {{ width:100%; border-collapse:collapse; display:block; overflow-x:auto; }} th,td {{ border:1px solid var(--line); padding:8px 10px; text-align:left; }}
 </style>
 </head>
@@ -115,12 +113,45 @@ table {{ width:100%; border-collapse:collapse; display:block; overflow-x:auto; }
   document.querySelectorAll('.quiz-card').forEach(card => {{
     const feedback = card.querySelector('.feedback');
     const buttons = [...card.querySelectorAll('.option')];
+    const optionText = target => `${{target.querySelector('.option-label').textContent}}. ${{target.dataset.answer}}`;
+    const addBadge = (target, label, className) => {{
+      const badge = document.createElement('span');
+      badge.className = `result-badge ${{className}}`;
+      badge.textContent = label;
+      target.appendChild(badge);
+    }};
     buttons.forEach(button => button.addEventListener('click', () => {{
       const correct = button.dataset.correct === 'true';
-      buttons.forEach(b => {{ b.disabled = true; b.classList.remove('selected'); }});
+      const correctButton = buttons.find(b => b.dataset.correct === 'true');
+      buttons.forEach(b => {{
+        b.disabled = true;
+        b.classList.remove('selected', 'correct-answer', 'wrong-selected');
+      }});
       button.classList.add('selected');
+      correctButton.classList.add('correct-answer');
+      addBadge(correctButton, '정답', 'correct');
+      if (!correct) {{
+        button.classList.add('wrong-selected');
+        addBadge(button, '내 선택', 'selected-wrong');
+      }}
+
+      feedback.replaceChildren();
       feedback.className = 'feedback ' + (correct ? 'ok' : 'bad');
-      feedback.textContent = (correct ? '정답입니다. ' : '아쉽습니다. ') + button.dataset.feedback;
+
+      const status = document.createElement('p');
+      status.textContent = correct ? '정답입니다.' : '오답입니다.';
+      feedback.appendChild(status);
+
+      const selectedDetail = document.createElement('p');
+      selectedDetail.textContent = `선택한 답: ${{optionText(button)}} — ${{button.dataset.feedback}}`;
+      feedback.appendChild(selectedDetail);
+
+      if (!correct) {{
+        const correctDetail = document.createElement('p');
+        correctDetail.className = 'correct-detail';
+        correctDetail.textContent = `정답: ${{optionText(correctButton)}} — ${{correctButton.dataset.feedback}}`;
+        feedback.appendChild(correctDetail);
+      }}
     }}));
   }}));
 }})();
