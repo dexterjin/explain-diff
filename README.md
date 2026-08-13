@@ -14,6 +14,8 @@
 - HTML: 오답 선택 시 실제 정답과 정답 해설 공개
 - Notion: toggle 안에 정답과 선택지별 해설 제공
 - 외부 의존성 없는 단일 HTML 생성
+- HTML 기본 저장 위치 `~/.explain-diff/reports/` 및 생성 후 브라우저 자동 열기(`--open`)
+- 생성 결과의 로컬 파일 경로와 `file://` URI 출력
 - Notion MCP/쓰기 도구가 연결된 환경에서 페이지 직접 생성/갱신
 - diff/PR 내부 prompt injection 방어 원칙
 
@@ -126,13 +128,30 @@ Notion 쓰기 기능이 연결되지 않은 상태에서 Notion 출력을 요청
 
 ## HTML 렌더러
 
-`scripts/render.py`는 콘텐츠 JSON을 받아 self-contained HTML을 생성합니다.
+`scripts/render.py`는 콘텐츠 JSON을 받아 self-contained HTML을 생성합니다. 출력 위치를 생략하면 `~/.explain-diff/reports/` 아래에 날짜와 제목 기반 파일명으로 저장합니다. 같은 이름이 있으면 자동으로 숫자 suffix를 붙입니다.
 
 ```bash
-python scripts/render.py content.json --output /tmp/2026-08-13-explanation-example.html
+# 기본 위치에 생성
+python scripts/render.py content.json
+
+# 생성 후 기본 브라우저에서 열기
+python scripts/render.py content.json --open
+
+# 원하는 위치에 생성 + 자동 열기
+python scripts/render.py content.json --output ./report.html --open
 ```
 
-입력 JSON에는 정확히 5개의 quiz 항목이 있어야 합니다. 오답을 선택하면 사용자가 선택한 답의 해설과 함께 실제 정답 및 정답 해설이 표시됩니다.
+실행 결과에는 다음 값이 출력됩니다.
+
+```text
+HTML_PATH=/Users/me/.explain-diff/reports/2026-08-13-example.html
+HTML_URI=file:///Users/me/.explain-diff/reports/2026-08-13-example.html
+BROWSER_OPENED=yes
+```
+
+`BROWSER_OPENED`는 `--open`을 사용했을 때만 출력됩니다. CI/SSH/컨테이너처럼 GUI가 없는 환경에서는 `--open`을 생략하세요.
+
+입력 JSON에는 정확히 5개의 quiz 항목이 있어야 합니다. 오답을 선택하면 사용자가 선택한 답의 해설과 함께 실제 정답 및 정답 해설이 표시됩니다. 섹션의 인라인 `style` 속성은 렌더링 단계에서 제거되어 라이트/다크 테마 충돌을 방지합니다.
 
 ## Notion 출력 형식
 
