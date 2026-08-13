@@ -5,6 +5,7 @@ import hashlib
 import html
 import json
 import random
+import re
 from pathlib import Path
 
 
@@ -12,9 +13,16 @@ def esc(value):
     return html.escape(str(value), quote=True)
 
 
+INLINE_STYLE_RE = re.compile(
+    r"\sstyle\s*=\s*(?:\"[^\"]*\"|'[^']*'|[^\s>]+)",
+    re.IGNORECASE,
+)
+
+
 def safe_section_html(raw):
-    # Content is authored by the agent. Keep the useful markup but block active/external HTML.
-    text = str(raw)
+    # Content is authored by the agent. Keep useful structural markup, but keep
+    # visual styling in this renderer so light/dark themes remain consistent.
+    text = INLINE_STYLE_RE.sub("", str(raw))
     lowered = text.lower()
     blocked = ("<script", "<iframe", "<object", "<embed", "javascript:", "http://", "https://")
     if any(token in lowered for token in blocked):
