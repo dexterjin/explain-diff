@@ -1,0 +1,3 @@
+interface:
+  display_name: "Explain Diff"
+  short_description: "코드 변경과 PR을 한국어 인터랙티브 설명서로 분석"
