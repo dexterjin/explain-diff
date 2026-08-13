@@ -11,6 +11,7 @@ Claude Code, Google Antigravity, ChatGPT 등 `SKILL.md` 기반 Agent Skills 환�
 - 파일 순서가 아닌 실행 흐름 중심 코드 설명
 - 엣지 케이스와 트레이드오프 점검
 - 5문항 인터랙티브 퀴즈
+- 오답 선택 시 실제 정답과 정답 해설 공개
 - 외부 의존성 없는 단일 HTML 생성
 - 선택지 순서 결정적 셔플
 - diff/PR 내부 prompt injection 방어 원칙
@@ -96,6 +97,8 @@ python scripts/render.py content.json --output /tmp/2026-08-13-explanation-examp
 ```
 
 입력 JSON에는 정확히 5개의 quiz 항목이 있어야 합니다.
+
+퀴즈에서 오답을 선택하면 사용자가 선택한 답의 해설과 함께 실제 정답 및 정답 해설이 표시되고, 정답 선택지에도 명시적인 표시가 붙습니다.
 
 ## 업데이트
 
