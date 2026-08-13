@@ -6,6 +6,8 @@ import html
 import json
 import random
 import re
+import unicodedata
+import webbrowser
 from pathlib import Path
 
 
@@ -30,6 +32,25 @@ def safe_section_html(raw):
     return text
 
 
+def slugify(value):
+    text = unicodedata.normalize("NFKC", str(value)).strip().lower()
+    text = re.sub(r"[^\w-]+", "-", text, flags=re.UNICODE)
+    text = re.sub(r"[-_]+", "-", text).strip("-")
+    return (text[:80] or "explanation")
+
+
+def default_output_path(title):
+    report_dir = Path.home() / ".explain-diff" / "reports"
+    report_dir.mkdir(parents=True, exist_ok=True)
+    stem = f"{dt.date.today().isoformat()}-{slugify(title)}"
+    candidate = report_dir / f"{stem}.html"
+    index = 2
+    while candidate.exists():
+        candidate = report_dir / f"{stem}-{index}.html"
+        index += 1
+    return candidate
+
+
 def shuffled_options(question, seed):
     options = question["options"]
     explanations = question["explanations"]
@@ -44,7 +65,8 @@ def shuffled_options(question, seed):
 
 
 def render(data):
-    title = esc(data.get("title", "코드 변경 설명"))
+    raw_title = data.get("title", "코드 변경 설명")
+    title = esc(raw_title)
     summary = esc(data.get("summary", ""))
     assumptions = data.get("assumptions", []) or []
     sections = data.get("sections", []) or []
@@ -170,15 +192,30 @@ table {{ width:100%; border-collapse:collapse; display:block; overflow-x:auto; }
 def main():
     parser = argparse.ArgumentParser(description="Render explain-diff JSON into a self-contained HTML file")
     parser.add_argument("input", help="content JSON path")
-    parser.add_argument("--output", help="output HTML path")
+    parser.add_argument("--output", help="output HTML path; defaults to ~/.explain-diff/reports/")
+    parser.add_argument("--open", action="store_true", help="open the generated HTML in the default browser")
     args = parser.parse_args()
 
-    input_path = Path(args.input)
+    input_path = Path(args.input).expanduser()
     data = json.loads(input_path.read_text(encoding="utf-8"))
-    output = Path(args.output) if args.output else Path("/tmp") / f"{dt.date.today().isoformat()}-explanation.html"
+    raw_title = data.get("title", "코드 변경 설명")
+    output = Path(args.output).expanduser() if args.output else default_output_path(raw_title)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(render(data), encoding="utf-8")
-    print(output.resolve())
+
+    resolved = output.resolve()
+    uri = resolved.as_uri()
+    opened = None
+    if args.open:
+        try:
+            opened = bool(webbrowser.open(uri, new=2))
+        except Exception:
+            opened = False
+
+    print(f"HTML_PATH={resolved}")
+    print(f"HTML_URI={uri}")
+    if args.open:
+        print(f"BROWSER_OPENED={'yes' if opened else 'no'}")
 
 
 if __name__ == "__main__":
