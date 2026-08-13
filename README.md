@@ -17,21 +17,53 @@ Claude Code, Google Antigravity, ChatGPT 등 `SKILL.md` 기반 Agent Skills 환�
 
 ## 설치
 
-### Agent Skills CLI
+### 자동 감지
+
+프로젝트 디렉터리에서 실행하면 설치 가능한 에이전트를 감지해 선택할 수 있습니다.
 
 ```bash
 npx skills add dexterjin/explain-diff
 ```
 
-지원 에이전트를 명시하려면 사용 중인 `skills` CLI의 agent 식별자를 확인한 뒤 `-a` 옵션을 사용하세요.
+전역 설치가 필요하면 `-g`를 추가합니다.
 
-### Claude Code
-
-저장소 단위로 직접 사용할 경우 이 저장소의 Skill 폴더를 프로젝트의 `.claude/skills/explain-diff/`에 둘 수 있습니다.
+```bash
+npx skills add dexterjin/explain-diff -g
+```
 
 ### Google Antigravity
 
-프로젝트 단위로 직접 사용할 경우 Skill 폴더를 `.agents/skills/explain-diff/`에 둘 수 있습니다.
+프로젝트에 설치:
+
+```bash
+npx skills add dexterjin/explain-diff -a antigravity -y
+```
+
+전역 설치:
+
+```bash
+npx skills add dexterjin/explain-diff -a antigravity -g -y
+```
+
+### Claude Code
+
+프로젝트에 설치:
+
+```bash
+npx skills add dexterjin/explain-diff -a claude-code -y
+```
+
+전역 설치:
+
+```bash
+npx skills add dexterjin/explain-diff -a claude-code -g -y
+```
+
+### Antigravity + Claude Code 동시에
+
+```bash
+npx skills add dexterjin/explain-diff -a antigravity -a claude-code -g -y
+```
 
 ### ChatGPT
 
@@ -54,6 +86,14 @@ python scripts/render.py content.json --output /tmp/2026-08-13-explanation-examp
 ```
 
 입력 JSON에는 정확히 5개의 quiz 항목이 있어야 합니다.
+
+## 업데이트
+
+`skills` CLI로 설치했다면 이후에는 다음 명령으로 최신 버전을 확인/업데이트할 수 있습니다.
+
+```bash
+npx skills update explain-diff
+```
 
 ## Credits
 
